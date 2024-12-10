@@ -1,4 +1,5 @@
 import pygame
+from enum import Enum
 
 
 # --- Constants ---
@@ -6,6 +7,7 @@ WIDTH = 1000
 HEIGHT = 1000
 CELL_SIZE = 10
 
+# TODO: Define the types and define the colors
 COLOR_MAP = {
     0: (150, 70, 70),  # Type 0 Cells
     1: (70, 150, 70),   # Type 1 Cells
@@ -14,21 +16,25 @@ COLOR_MAP = {
 
 
 # --- Classes ---
+
 class Cell:
     """
     Represents a cell in the grid, with a type (used to determine color).
     """
+    type: int = 0
     def __init__(self, cell_type: int = 0):
-        self.type = cell_type
+        self.type = 0
 
     def update(self, pos_x, pos_y):
         """
         Updates the cell state. Placeholder for future logic.
         """
         neighbors = get_neighbors(pos_x, pos_y)
+
+        # TODO: Write update logic and set of rules
+        # Temporary testing function
         if neighbors[0].type == self.type:
             self.type = 0
-
 
 # --- Functions ---
 def init_cells():
