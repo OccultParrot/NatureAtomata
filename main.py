@@ -2,7 +2,8 @@ import pygame
 
 
 # --- Constants ---
-WIDTH, HEIGHT, CELL_SIZE = 1000, 1000, 10
+WIDTH, HEIGHT = 1000, 1000
+CELL_SIZE = 10
 
 COLOR_MAP = {
     0: (150, 70, 70),  # Type 0 Cells
