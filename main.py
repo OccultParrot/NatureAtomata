@@ -1,4 +1,7 @@
 import pygame
+import random
+import math
+
 from enum import Enum
 
 
@@ -7,23 +10,30 @@ WIDTH = 1000
 HEIGHT = 1000
 CELL_SIZE = 10
 
+MAX_INFLUENCE = 10
+NUM_CENTERS = 100
+
+def get_rows() -> int:
+    return HEIGHT // CELL_SIZE
+
+def get_cols() -> int:
+    return WIDTH // CELL_SIZE
+
 # TODO: Define the types and define the colors
 COLOR_MAP = {
-    0: (150, 70, 70),  # Type 0 Cells
-    1: (70, 150, 70),   # Type 1 Cells
-    2: (70, 70, 150),   # Type 2 Cells
+    "dirt": (150, 70, 70),  # Dirt Cells
+    "grass": (70, 150, 70),   # Grass Cells
+    "prey": (70, 70, 150),   # Prey Cells
 }
-
-
 # --- Classes ---
 
 class Cell:
     """
     Represents a cell in the grid, with a type (used to determine color).
     """
-    type: int = 0
-    def __init__(self, cell_type: int = 0):
-        self.type = 0
+    type: str = "dirt"
+    def __init__(self, cell_type: str = "dirt"):
+        self.type = cell_type
 
     def update(self, pos_x, pos_y):
         """
@@ -32,21 +42,61 @@ class Cell:
         neighbors = get_neighbors(pos_x, pos_y)
 
         # TODO: Write update logic and set of rules
-        # Temporary testing function
-        if neighbors[0].type == self.type:
-            self.type = 0
 
 # --- Functions ---
+def blob_noise(x: int, y: int, seed: int = 42) -> float:
+    """
+    Generates blob-like noise using sine waves with random offsets.
+    """
+    random.seed(seed)
+
+    # Generate random blob centers
+    blob_centers = [
+        (random.uniform(0, get_cols()), random.uniform(0, get_rows()))
+        for _ in range(NUM_CENTERS)
+    ]
+
+    # Calculate influence from all blobs
+    value = 0
+    for bx, by in blob_centers:
+        # Calculate distance to blob center
+        dx = x - bx
+        dy = y - by
+        dist = math.sqrt(dx * dx + dy * dy)
+
+        # Add smooth falloff based on distance
+        if dist < MAX_INFLUENCE:
+            value += 1 - (dist / MAX_INFLUENCE)
+
+    # Normalize value between 0 and 1
+    return min(1.0, value)
+
+
 def init_cells():
     """
-    Initializes the grid of cells, assigning each cell a type based on its position.
+    Initializes the grid of cells with blob-like patterns of dirt and grass.
     :return: 2D list of Cell objects.
     """
-    rows, cols = HEIGHT // CELL_SIZE, WIDTH // CELL_SIZE
-    return [
-        [Cell(j % 3) for j in range(cols)]  # Assigning cell types based on column index
-        for i in range(rows)
-    ]
+    rows = get_rows()
+    cols = get_cols()
+
+    # Initialize the grid
+    grid = []
+
+    for i in range(rows):
+        row = []
+        for j in range(cols):
+            # Generate noise value
+            noise_val = blob_noise(j, i)
+
+            # Use threshold to determine cell type
+            # Adjust threshold to control grass/dirt ratio
+            cell_type = "grass" if noise_val > 0.5 else "dirt"
+            row.append(Cell(cell_type))
+        grid.append(row)
+
+    return grid
+
 
 
 def generate_uv_gradient():
@@ -58,13 +108,13 @@ def generate_uv_gradient():
 
     :return: A 2D list of RGB tuples representing the gradient.
     """
-    rows, cols = HEIGHT // CELL_SIZE, WIDTH // CELL_SIZE
+    
     return [
         [
-            (int((j / (cols - 1)) * 255), int((i / (rows - 1)) * 255), 0)
-            for j in range(cols)
+            (int((j / (get_cols() - 1)) * 255), int((i / (get_rows() - 1)) * 255), 0)
+            for j in range(get_cols())
         ]
-        for i in range(rows)
+        for i in range(get_rows())
     ]
 
 
